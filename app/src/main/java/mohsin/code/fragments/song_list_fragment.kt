@@ -5,12 +5,18 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.SearchView
+import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import mohsin.code.fragments.adapters.ItemAdapter
+import java.util.Locale
 
 class SongListFragment : Fragment() {
+
+    private var mList = mutableListOf<Songs>()
+    private lateinit var adapter: ItemAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -22,9 +28,11 @@ class SongListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val songList = Constants.getSongList()
+        // Initialize mList with actual data
+        mList = Constants.getSongList().toMutableList()
 
-        val itemAdapter = ItemAdapter(songList) { song ->
+        // Initialize the adapter and set it to the fragment's adapter property
+        adapter = ItemAdapter(mList as ArrayList<Songs>) { song ->
             // Handle item click
             val bundle = Bundle().apply {
                 putString("songName", song.songName)
@@ -35,6 +43,36 @@ class SongListFragment : Fragment() {
 
         val rvItem: RecyclerView = view.findViewById(R.id.rvItem)
         rvItem.layoutManager = LinearLayoutManager(context)
-        rvItem.adapter = itemAdapter
+        rvItem.adapter = adapter
+
+        val searchView: SearchView = view.findViewById(R.id.searchView)
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                filterText(newText)
+                return true
+            }
+        })
+    }
+
+    private fun filterText(query: String?) {
+        if (query != null) {
+            val filteredList = ArrayList<Songs>()
+            for (i in mList) {
+                if (i.songName.lowercase(Locale.ROOT).contains(query.lowercase(Locale.ROOT))
+                    || i.singerName.lowercase(Locale.ROOT).contains(query.lowercase(Locale.ROOT))) {
+                    filteredList.add(i)
+                }
+            }
+
+            if (filteredList.isEmpty()) {
+                Toast.makeText(context, "No Data Found", Toast.LENGTH_SHORT).show()
+            } else {
+                adapter.setFilteredList(filteredList)
+            }
+        }
     }
 }

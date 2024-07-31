@@ -9,7 +9,7 @@ import mohsin.code.fragments.R
 import mohsin.code.fragments.Songs
 
 class ItemAdapter(
-    private val items: ArrayList<Songs>,
+    private var items: ArrayList<Songs>,
     private val onItemClick: (Songs) -> Unit
 ) : RecyclerView.Adapter<ItemAdapter.MyViewHolder>() {
 
@@ -23,7 +23,12 @@ class ItemAdapter(
         return items.size
     }
 
-    
+    fun setFilteredList(mList: ArrayList<Songs>){
+        this.items = mList
+        notifyDataSetChanged()
+    }
+
+
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         val song = items[position]
         holder.songName.text = song.songName
